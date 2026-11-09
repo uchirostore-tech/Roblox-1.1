@@ -245,7 +245,8 @@ app.get('/api/user/lookup', async (req, res) => {
       presenceData,
       badgesData,
       groupsData,
-      collectiblesData
+      collectiblesData,
+      gamesData
     ] = await Promise.allSettled([
       fetchRoblox(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=420x420&format=Png&isCircular=false`),
       fetchRoblox(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`),
@@ -258,9 +259,10 @@ app.get('/api/user/lookup', async (req, res) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userIds: [userId] })
       }),
-      fetchRoblox(`https://badges.roblox.com/v1/users/${userId}/badges?limit=12&sortOrder=Desc`),
+      fetchRoblox(`https://badges.roblox.com/v1/users/${userId}/badges?limit=25&sortOrder=Desc`),
       fetchRoblox(`https://groups.roblox.com/v1/users/${userId}/groups/roles`),
-      fetchRoblox(`https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?limit=100&sortOrder=Asc`)
+      fetchRoblox(`https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?limit=100&sortOrder=Asc`),
+      fetchRoblox(`https://games.roblox.com/v2/users/${userId}/games?accessFilter=Public&sortOrder=Asc&limit=10`)
     ]);
 
     // Parse Avatar Image URLs
@@ -292,6 +294,26 @@ app.get('/api/user/lookup', async (req, res) => {
     const diffMs = now - createdDate;
     const ageDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     const ageYears = (ageDays / 365.25).toFixed(1);
+    const joinYear = createdDate.getFullYear();
+
+    let accountTier = 'Modern Player';
+    let baseAgeRobux = 200;
+    if (joinYear <= 2008) {
+      accountTier = 'Ancient OG (2006-2008)';
+      baseAgeRobux = 25000;
+    } else if (joinYear <= 2012) {
+      accountTier = 'Classic Veteran (2009-2012)';
+      baseAgeRobux = 8000;
+    } else if (joinYear <= 2016) {
+      accountTier = 'Old School (2013-2016)';
+      baseAgeRobux = 3000;
+    } else if (joinYear <= 2020) {
+      accountTier = 'Golden Era (2017-2020)';
+      baseAgeRobux = 1000;
+    } else {
+      accountTier = 'New Generation (2021+)';
+      baseAgeRobux = 200;
+    }
 
     // Collectibles & RAP estimation
     let totalRap = 0;
@@ -305,33 +327,116 @@ app.get('/api/user/lookup', async (req, res) => {
           name: item.name,
           rap: rap,
           serialNumber: item.serialNumber,
-          originalPrice: item.originalPrice
+          originalPrice: item.originalPrice,
+          thumbnail: null
         };
       });
     }
 
     // Format Groups
-    const groups = groupsData.status === 'fulfilled' && groupsData.value.data
+    let groups = groupsData.status === 'fulfilled' && groupsData.value.data
       ? groupsData.value.data.map(g => ({
           id: g.group.id,
           name: g.group.name,
           memberCount: g.group.memberCount,
           role: g.role.name,
           rank: g.role.rank,
-          isPrimary: g.isPrimaryGroup
+          isPrimary: g.isPrimaryGroup,
+          iconUrl: null
         }))
       : [];
 
     // Format Badges
-    const badges = badgesData.status === 'fulfilled' && badgesData.value.data
+    let badges = badgesData.status === 'fulfilled' && badgesData.value.data
       ? badgesData.value.data.map(b => ({
           id: b.id,
           name: b.name,
-          description: b.description,
-          iconImageId: b.iconImageId,
+          description: b.description || 'Awarded on Roblox',
+          iconUrl: null,
           awardedDate: b.awardDate
         }))
       : [];
+
+    // Format Created Games
+    let games = [];
+    let totalGameVisits = 0;
+    if (gamesData.status === 'fulfilled' && gamesData.value.data) {
+      games = gamesData.value.data.map(g => {
+        const visits = g.placeVisits || 0;
+        totalGameVisits += visits;
+        return {
+          id: g.id,
+          name: g.name,
+          description: g.description || '',
+          visits: visits,
+          rootPlaceId: g.rootPlace?.id || g.id,
+          created: g.created,
+          updated: g.updated,
+          url: `https://www.roblox.com/games/${g.rootPlace?.id || g.id}`,
+          thumbnail: null
+        };
+      });
+    }
+
+    // Secondary parallel fetch for rich thumbnails (Badges, Groups, Collectibles, Games)
+    const badgeIds = badges.map(b => b.id).slice(0, 20);
+    const groupIds = groups.map(g => g.id).slice(0, 20);
+    const collectibleIds = collectibleItems.map(c => c.id).slice(0, 20);
+    const gamePlaceIds = games.map(g => g.rootPlaceId).slice(0, 10);
+
+    const [badgeThumbRes, groupThumbRes, collThumbRes, gameThumbRes] = await Promise.allSettled([
+      badgeIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/badges/icons?badgeIds=${badgeIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
+      groupIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/groups/icons?groupIds=${groupIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
+      collectibleIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/assets?assetIds=${collectibleIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
+      gamePlaceIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${gamePlaceIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] })
+    ]);
+
+    // Attach Badge Icons
+    if (badgeThumbRes.status === 'fulfilled' && badgeThumbRes.value?.data) {
+      const badgeThumbMap = new Map(badgeThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
+      badges.forEach(b => {
+        b.iconUrl = badgeThumbMap.get(b.id) || null;
+      });
+    }
+
+    // Attach Group Icons
+    if (groupThumbRes.status === 'fulfilled' && groupThumbRes.value?.data) {
+      const groupThumbMap = new Map(groupThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
+      groups.forEach(g => {
+        g.iconUrl = groupThumbMap.get(g.id) || null;
+      });
+    }
+
+    // Attach Collectible Thumbnails
+    if (collThumbRes.status === 'fulfilled' && collThumbRes.value?.data) {
+      const collThumbMap = new Map(collThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
+      collectibleItems.forEach(c => {
+        c.thumbnail = collThumbMap.get(c.id) || null;
+      });
+    }
+
+    // Attach Game Thumbnails
+    if (gameThumbRes.status === 'fulfilled' && gameThumbRes.value?.data) {
+      const gameThumbMap = new Map(gameThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
+      games.forEach(g => {
+        g.thumbnail = gameThumbMap.get(g.rootPlaceId) || null;
+      });
+    }
+
+    // Estimated Account Valuation Engine
+    const friendsCount = friendsCountData.status === 'fulfilled' ? friendsCountData.value.count : 0;
+    const followersCount = followersCountData.status === 'fulfilled' ? followersCountData.value.count : 0;
+    const followingCount = followingsCountData.status === 'fulfilled' ? followingsCountData.value.count : 0;
+
+    const estimatedRobuxWorth = Math.round(
+      totalRap +
+      baseAgeRobux +
+      (badges.length * 25) +
+      Math.min(followersCount * 2, 50000) +
+      Math.min(Math.floor(totalGameVisits / 10), 100000)
+    );
+    const estimatedUsdDevex = (estimatedRobuxWorth * 0.0035).toFixed(2);
+    const estimatedUsdRetail = (estimatedRobuxWorth * 0.0125).toFixed(2);
 
     const fullProfile = {
       id: baseUserInfo.id,
@@ -341,6 +446,8 @@ app.get('/api/user/lookup', async (req, res) => {
       created: baseUserInfo.created,
       ageDays,
       ageYears,
+      joinYear,
+      accountTier,
       isBanned: baseUserInfo.isBanned || false,
       hasVerifiedBadge: baseUserInfo.hasVerifiedBadge || false,
       avatarUrl,
@@ -355,19 +462,33 @@ app.get('/api/user/lookup', async (req, res) => {
         lastOnline: presenceObj.lastOnline
       },
       counts: {
-        friends: friendsCountData.status === 'fulfilled' ? friendsCountData.value.count : 0,
-        followers: followersCountData.status === 'fulfilled' ? followersCountData.value.count : 0,
-        following: followingsCountData.status === 'fulfilled' ? followingsCountData.value.count : 0,
+        friends: friendsCount,
+        followers: followersCount,
+        following: followingCount,
         groups: groups.length,
         badges: badges.length,
         collectibles: collectibleItems.length,
-        totalRap: totalRap
+        games: games.length,
+        totalGameVisits,
+        totalRap
+      },
+      valuation: {
+        estimatedRobux: estimatedRobuxWorth,
+        estimatedUsdDevex,
+        estimatedUsdRetail,
+        totalRap,
+        baseAgeRobux,
+        accountTier
       },
       collectibles: collectibleItems,
-      groups: groups.slice(0, 15),
-      badges: badges.slice(0, 12),
-      rolimonsUrl: `https://www.rolimons.com/player/${userId}`,
-      robloxProfileUrl: `https://www.roblox.com/users/${userId}/profile`
+      groups: groups.slice(0, 20),
+      badges: badges.slice(0, 25),
+      games: games.slice(0, 10),
+      // Deep Links & Add Friend Options
+      robloxProfileUrl: `https://www.roblox.com/users/${userId}/profile`,
+      robloxAddFriendDeepLink: `roblox://navigation/user_profile?userId=${userId}`,
+      addFriendQrUrl: `https://www.roblox.com/users/${userId}/profile`,
+      rolimonsUrl: `https://www.rolimons.com/player/${userId}`
     };
 
     res.json({ success: true, profile: fullProfile });

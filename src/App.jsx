@@ -11,7 +11,7 @@ import { translations } from './translations';
 
 export default function App() {
   const [lang, setLang] = useState('km'); // Default is Khmer as requested
-  const [activeTab, setActiveTab] = useState('rewind'); // 'rewind' or 'profile'
+  const [activeTab, setActiveTab] = useState('profile'); // Default is 'profile' (Method 1: Super Detail & Add Friend QR)
   const [rewindData, setRewindData] = useState(null); // Starts clean with zero mock/example data
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -225,7 +225,7 @@ export default function App() {
             onOpenCalculator={() => setIsCalculatorOpen(true)}
           />
         ) : (
-          <AccountChecker lang={lang} />
+          <AccountChecker lang={lang} currency={currency} />
         )}
       </main>
 

@@ -110,27 +110,27 @@ export default function Header({
         {/* Left: Mode Switcher */}
         <div className="flex items-center bg-[#13151B] p-1 rounded-xl border border-white/10 shadow-inner flex-shrink-0">
           <button
-            onClick={() => setActiveTab('rewind')}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'rewind'
-                ? 'bg-gradient-to-r from-roblox-accent to-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
-            <span>{t.navRewind}</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               activeTab === 'profile'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                ? 'bg-gradient-to-r from-roblox-accent via-blue-600 to-indigo-600 text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{t.navProfile}</span>
+            <span>{lang === 'km' ? '🔍 ពិនិត្យគណនី & QR' : '🔍 Profile & QR'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('rewind')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              activeTab === 'rewind'
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5 text-amber-400" />
+            <span>{lang === 'km' ? '⚡ Rewind ចំណាយ' : '⚡ Spending Rewind'}</span>
           </button>
         </div>
 
