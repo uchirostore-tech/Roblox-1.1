@@ -244,9 +244,12 @@ app.get('/api/user/lookup', async (req, res) => {
       followingsCountData,
       presenceData,
       badgesData,
+      robloxBadgesData,
       groupsData,
       collectiblesData,
-      gamesData
+      gamesData,
+      wearingData,
+      favoritesData
     ] = await Promise.allSettled([
       fetchRoblox(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${userId}&size=420x420&format=Png&isCircular=false`),
       fetchRoblox(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`),
@@ -260,9 +263,12 @@ app.get('/api/user/lookup', async (req, res) => {
         body: JSON.stringify({ userIds: [userId] })
       }),
       fetchRoblox(`https://badges.roblox.com/v1/users/${userId}/badges?limit=25&sortOrder=Desc`),
+      fetchRoblox(`https://accountinformation.roblox.com/v1/users/${userId}/roblox-badges`),
       fetchRoblox(`https://groups.roblox.com/v1/users/${userId}/groups/roles`),
       fetchRoblox(`https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?limit=100&sortOrder=Asc`),
-      fetchRoblox(`https://games.roblox.com/v2/users/${userId}/games?accessFilter=Public&sortOrder=Asc&limit=10`)
+      fetchRoblox(`https://games.roblox.com/v2/users/${userId}/games?accessFilter=Public&sortOrder=Asc&limit=10`),
+      fetchRoblox(`https://avatar.roblox.com/v1/users/${userId}/currently-wearing`),
+      fetchRoblox(`https://games.roblox.com/v2/users/${userId}/favorite/games?limit=10&sortOrder=Desc`)
     ]);
 
     // Parse Avatar Image URLs
@@ -297,22 +303,16 @@ app.get('/api/user/lookup', async (req, res) => {
     const joinYear = createdDate.getFullYear();
 
     let accountTier = 'Modern Player';
-    let baseAgeRobux = 200;
     if (joinYear <= 2008) {
       accountTier = 'Ancient OG (2006-2008)';
-      baseAgeRobux = 25000;
     } else if (joinYear <= 2012) {
       accountTier = 'Classic Veteran (2009-2012)';
-      baseAgeRobux = 8000;
     } else if (joinYear <= 2016) {
       accountTier = 'Old School (2013-2016)';
-      baseAgeRobux = 3000;
     } else if (joinYear <= 2020) {
       accountTier = 'Golden Era (2017-2020)';
-      baseAgeRobux = 1000;
     } else {
       accountTier = 'New Generation (2021+)';
-      baseAgeRobux = 200;
     }
 
     // Collectibles & RAP estimation
@@ -346,16 +346,34 @@ app.get('/api/user/lookup', async (req, res) => {
         }))
       : [];
 
-    // Format Badges
-    let badges = badgesData.status === 'fulfilled' && badgesData.value.data
-      ? badgesData.value.data.map(b => ({
+    // Format Badges (Combine official badges with user badges)
+    let badges = [];
+    if (robloxBadgesData.status === 'fulfilled' && Array.isArray(robloxBadgesData.value)) {
+      robloxBadgesData.value.forEach(b => {
+        badges.push({
           id: b.id,
           name: b.name,
-          description: b.description || 'Awarded on Roblox',
-          iconUrl: null,
-          awardedDate: b.awardDate
-        }))
-      : [];
+          description: b.description || 'Official Roblox Award',
+          iconUrl: b.imageUrl,
+          isOfficial: true
+        });
+      });
+    }
+
+    if (badgesData.status === 'fulfilled' && badgesData.value.data) {
+      badgesData.value.data.forEach(b => {
+        if (!badges.some(existing => existing.id === b.id)) {
+          badges.push({
+            id: b.id,
+            name: b.name,
+            description: b.description || 'Awarded on Roblox',
+            iconUrl: null,
+            awardedDate: b.awardDate,
+            isOfficial: false
+          });
+        }
+      });
+    }
 
     // Format Created Games
     let games = [];
@@ -378,24 +396,76 @@ app.get('/api/user/lookup', async (req, res) => {
       });
     }
 
-    // Secondary parallel fetch for rich thumbnails (Badges, Groups, Collectibles, Games)
-    const badgeIds = badges.map(b => b.id).slice(0, 20);
+    // Format Favorites
+    let favorites = [];
+    if (favoritesData.status === 'fulfilled' && favoritesData.value?.data) {
+      favorites = favoritesData.value.data.map(f => ({
+        id: f.id,
+        name: f.name,
+        creator: f.creator?.name || 'Roblox',
+        visits: f.placeVisits || 0,
+        rootPlaceId: f.rootPlace?.id || f.id,
+        url: `https://www.roblox.com/games/${f.rootPlace?.id || f.id}`,
+        thumbnail: null
+      }));
+    }
+
+    // Format Currently Wearing items
+    const wearingAssetIds = wearingData.status === 'fulfilled' && Array.isArray(wearingData.value?.assetIds)
+      ? wearingData.value.assetIds.slice(0, 12)
+      : [];
+
+    let currentlyWearing = [];
+    if (wearingAssetIds.length > 0) {
+      const detailsList = await Promise.allSettled(
+        wearingAssetIds.map(id => fetchRoblox(`https://economy.roblox.com/v2/assets/${id}/details`))
+      );
+
+      currentlyWearing = detailsList
+        .filter(r => r.status === 'fulfilled' && r.value?.Name)
+        .map(r => {
+          const d = r.value;
+          const aId = d.AssetId || d.TargetId;
+          const price = d.PriceInRobux;
+          let priceText = 'Off-sale / Limited';
+          if (price === 0) priceText = 'Free';
+          else if (price > 0) priceText = `${price.toLocaleString()} R$`;
+
+          return {
+            id: aId,
+            name: d.Name,
+            price: price,
+            priceText: priceText,
+            isForSale: !!d.IsForSale,
+            productType: d.ProductType || 'Asset',
+            url: `https://www.roblox.com/catalog/${aId}`,
+            thumbnail: null
+          };
+        });
+    }
+
+    // Secondary parallel fetch for rich thumbnails (Badges, Groups, Collectibles, Games, Favorites, Currently Wearing)
+    const badgeIdsToFetch = badges.filter(b => !b.iconUrl).map(b => b.id).slice(0, 20);
     const groupIds = groups.map(g => g.id).slice(0, 20);
     const collectibleIds = collectibleItems.map(c => c.id).slice(0, 20);
     const gamePlaceIds = games.map(g => g.rootPlaceId).slice(0, 10);
+    const favPlaceIds = favorites.map(f => f.rootPlaceId).slice(0, 10);
+    const wearingIds = currentlyWearing.map(w => w.id);
 
-    const [badgeThumbRes, groupThumbRes, collThumbRes, gameThumbRes] = await Promise.allSettled([
-      badgeIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/badges/icons?badgeIds=${badgeIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
+    const [badgeThumbRes, groupThumbRes, collThumbRes, gameThumbRes, favThumbRes, wearingThumbRes] = await Promise.allSettled([
+      badgeIdsToFetch.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/badges/icons?badgeIds=${badgeIdsToFetch.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
       groupIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/groups/icons?groupIds=${groupIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
       collectibleIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/assets?assetIds=${collectibleIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
-      gamePlaceIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${gamePlaceIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] })
+      gamePlaceIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${gamePlaceIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
+      favPlaceIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/places/gameicons?placeIds=${favPlaceIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] }),
+      wearingIds.length > 0 ? fetchRoblox(`https://thumbnails.roblox.com/v1/assets?assetIds=${wearingIds.join(',')}&size=150x150&format=Png`) : Promise.resolve({ data: [] })
     ]);
 
     // Attach Badge Icons
     if (badgeThumbRes.status === 'fulfilled' && badgeThumbRes.value?.data) {
       const badgeThumbMap = new Map(badgeThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
       badges.forEach(b => {
-        b.iconUrl = badgeThumbMap.get(b.id) || null;
+        if (!b.iconUrl) b.iconUrl = badgeThumbMap.get(b.id) || null;
       });
     }
 
@@ -423,20 +493,25 @@ app.get('/api/user/lookup', async (req, res) => {
       });
     }
 
-    // Estimated Account Valuation Engine
+    // Attach Favorite Game Thumbnails
+    if (favThumbRes.status === 'fulfilled' && favThumbRes.value?.data) {
+      const favThumbMap = new Map(favThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
+      favorites.forEach(f => {
+        f.thumbnail = favThumbMap.get(f.rootPlaceId) || null;
+      });
+    }
+
+    // Attach Currently Wearing Thumbnails
+    if (wearingThumbRes.status === 'fulfilled' && wearingThumbRes.value?.data) {
+      const wearThumbMap = new Map(wearingThumbRes.value.data.map(d => [d.targetId, d.imageUrl]));
+      currentlyWearing.forEach(w => {
+        w.thumbnail = wearThumbMap.get(w.id) || null;
+      });
+    }
+
     const friendsCount = friendsCountData.status === 'fulfilled' ? friendsCountData.value.count : 0;
     const followersCount = followersCountData.status === 'fulfilled' ? followersCountData.value.count : 0;
     const followingCount = followingsCountData.status === 'fulfilled' ? followingsCountData.value.count : 0;
-
-    const estimatedRobuxWorth = Math.round(
-      totalRap +
-      baseAgeRobux +
-      (badges.length * 25) +
-      Math.min(followersCount * 2, 50000) +
-      Math.min(Math.floor(totalGameVisits / 10), 100000)
-    );
-    const estimatedUsdDevex = (estimatedRobuxWorth * 0.0035).toFixed(2);
-    const estimatedUsdRetail = (estimatedRobuxWorth * 0.0125).toFixed(2);
 
     const fullProfile = {
       id: baseUserInfo.id,
@@ -469,20 +544,16 @@ app.get('/api/user/lookup', async (req, res) => {
         badges: badges.length,
         collectibles: collectibleItems.length,
         games: games.length,
+        favorites: favorites.length,
+        currentlyWearing: currentlyWearing.length,
         totalGameVisits,
         totalRap
       },
-      valuation: {
-        estimatedRobux: estimatedRobuxWorth,
-        estimatedUsdDevex,
-        estimatedUsdRetail,
-        totalRap,
-        baseAgeRobux,
-        accountTier
-      },
+      currentlyWearing,
+      favorites,
       collectibles: collectibleItems,
       groups: groups.slice(0, 20),
-      badges: badges.slice(0, 25),
+      badges: badges.slice(0, 30),
       games: games.slice(0, 10),
       // Deep Links & Add Friend Options
       robloxProfileUrl: `https://www.roblox.com/users/${userId}/profile`,

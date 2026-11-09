@@ -77,10 +77,10 @@ export default function RewindDashboard({
           ) : (
             <button
               onClick={onOpenExtensionModal}
-              className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-600/30 text-roblox-accent hover:text-white border border-roblox-accent/40 font-bold text-xs transition-all shadow-lg"
+              className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-500/20 to-blue-600/20 hover:from-purple-500/30 hover:to-blue-600/30 text-purple-300 hover:text-white border border-purple-500/40 font-bold text-xs transition-all shadow-lg"
             >
-              <Zap className="w-4 h-4 fill-roblox-accent" />
-              <span>{lang === 'km' ? '📱 វិធីភ្ជាប់លើ iPhone, Android & PC' : '📱 Connect on iPhone, Android & PC'}</span>
+              <Puzzle className="w-4 h-4 text-purple-400" />
+              <span>{lang === 'km' ? '🔌 ដំឡើង Extension លើ Browser ផ្ទាល់' : '🔌 Install Extension Directly'}</span>
             </button>
           )}
         </div>

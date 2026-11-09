@@ -4,7 +4,7 @@ import RewindDashboard from './components/RewindDashboard';
 import AccountChecker from './components/AccountChecker';
 import ShareModal from './components/ShareModal';
 import PrivacyModal from './components/PrivacyModal';
-import ConnectModal from './components/ConnectModal';
+import ExtensionModal from './components/ExtensionModal';
 import CalculatorModal from './components/CalculatorModal';
 import DonateModal from './components/DonateModal';
 import { translations } from './translations';
@@ -306,13 +306,9 @@ export default function App() {
         currency={currency}
       />
 
-      <ConnectModal
+      <ExtensionModal
         isOpen={isExtensionModalOpen}
         onClose={() => setIsExtensionModalOpen(false)}
-        onSelectTab={(tab) => {
-          setIsExtensionModalOpen(false);
-          setActiveTab(tab);
-        }}
         isExtensionInstalled={isExtensionInstalled}
         onAutoConnect={handleAutoConnect}
         lang={lang}

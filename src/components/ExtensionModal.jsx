@@ -1,34 +1,34 @@
 import React, { useState } from 'react';
-import { X, Puzzle, ExternalLink, Check, Copy, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { X, Puzzle, Download, Check, Copy, ArrowRight, ShieldCheck, Zap, Chrome, ExternalLink } from 'lucide-react';
+import { translations } from '../translations';
 
-export default function ExtensionModal({ isOpen, onClose, isExtensionInstalled, onAutoConnect }) {
+export default function ExtensionModal({ isOpen, onClose, isExtensionInstalled, onAutoConnect, lang = 'km' }) {
+  const t = translations[lang] || translations.km;
   const [copied, setCopied] = useState(false);
-  const extensionPath = "C:\\Users\\NTC COMPUTER\\.gemini\\antigravity\\scratch\\roblox-checker-rewind\\extension";
 
   if (!isOpen) return null;
 
-  const copyPath = () => {
-    navigator.clipboard.writeText(extensionPath);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-xl bg-[#0E1015] border border-white/10 rounded-3xl p-6 shadow-2xl">
-        
+      <div 
+        className="relative w-full max-w-lg bg-gradient-to-b from-[#141824] via-[#10131C] to-[#0A0B0E] border border-white/10 rounded-3xl p-6 shadow-2xl text-slate-100"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Glow Accent */}
+        <div className="absolute top-0 right-1/4 w-48 h-48 bg-roblox-accent/20 rounded-full blur-3xl pointer-events-none" />
+
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-blue-500/20 text-roblox-accent border border-roblox-accent/30">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 rounded-2xl bg-gradient-to-br from-roblox-accent to-purple-600 text-white shadow-lg shadow-blue-500/25">
               <Puzzle className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-base font-extrabold text-white">
-                Roblox Rewind Auto-Connector Extension
+                {t.extensionInstallTitle}
               </h3>
-              <p className="text-xs text-slate-400">
-                Auto-detect your active Roblox login without manually copying cookies
+              <p className="text-[11px] text-slate-400">
+                Roblox Pulse Official Extension V1.1
               </p>
             </div>
           </div>
@@ -42,105 +42,99 @@ export default function ExtensionModal({ isOpen, onClose, isExtensionInstalled, 
         </div>
 
         {/* Status Badge */}
-        <div className="mt-4 p-3 rounded-xl flex items-center justify-between border bg-black/40">
+        <div className="mt-4 p-3.5 rounded-2xl flex items-center justify-between border border-white/10 bg-black/40 shadow-inner">
           <div className="flex items-center gap-2 text-xs">
             <span className={`w-2.5 h-2.5 rounded-full ${isExtensionInstalled ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
-            <span className="text-slate-200">Extension Status:</span>
-            <strong className={isExtensionInstalled ? 'text-emerald-400' : 'text-amber-400'}>
-              {isExtensionInstalled ? 'Installed & Ready' : 'Not Loaded in Browser Yet'}
+            <span className="text-slate-300">Extension:</span>
+            <strong className={isExtensionInstalled ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+              {isExtensionInstalled ? (lang === 'km' ? '🟢 បានដំឡើងរួចរាល់' : '🟢 Installed & Active') : (lang === 'km' ? '⚪ មិនទាន់ដំឡើង' : '⚪ Not Added Yet')}
             </strong>
           </div>
 
           {isExtensionInstalled && (
             <button
               onClick={() => { onClose(); onAutoConnect(); }}
-              className="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1"
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs transition-all shadow-md shadow-emerald-500/25 flex items-center gap-1.5 hover:scale-[1.02]"
             >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Auto-Connect Now</span>
+              <Zap className="w-3.5 h-3.5 fill-slate-950" />
+              <span>{lang === 'km' ? 'Scan ឥឡូវនេះ' : 'Auto-Connect Now'}</span>
             </button>
           )}
         </div>
 
-        {/* 3 Step Installation Instructions */}
-        {!isExtensionInstalled ? (
-          <div className="mt-4 space-y-3 text-xs text-slate-300">
-            <p className="text-slate-400">
-              Web browsers prevent normal websites from reading cookies from other tabs (Same-Origin Policy).
-              Just like the official <code>chrome-extension://...</code> tool, loading this local helper extension allows 1-click auto connection:
-            </p>
-
-            <div className="space-y-2.5">
-              <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-3">
-                <span className="w-6 h-6 rounded-lg bg-roblox-accent/20 text-roblox-accent font-bold flex items-center justify-center flex-shrink-0">
-                  1
-                </span>
-                <div>
-                  <p className="font-semibold text-white">Open Extensions in Chrome or Edge</p>
-                  <p className="text-slate-400 text-[11px] mt-0.5">
-                    Navigate to <code className="text-roblox-accent bg-black/40 px-1.5 py-0.5 rounded font-mono">chrome://extensions</code> in a new tab and enable <strong className="text-slate-200">Developer mode</strong> (toggle at the top-right).
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-3">
-                <span className="w-6 h-6 rounded-lg bg-roblox-accent/20 text-roblox-accent font-bold flex items-center justify-center flex-shrink-0">
-                  2
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-white">Click "Load unpacked"</p>
-                  <p className="text-slate-400 text-[11px] mt-0.5">
-                    Click the <strong>Load unpacked</strong> button at the top-left and select this extension folder:
-                  </p>
-                  <div className="mt-2 flex items-center gap-2 p-2 rounded-lg bg-black/60 border border-white/10 font-mono text-[11px] text-slate-300">
-                    <span className="truncate flex-1">{extensionPath}</span>
-                    <button
-                      onClick={copyPath}
-                      className="p-1 rounded bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors flex items-center gap-1 text-[10px]"
-                      title="Copy folder path"
-                    >
-                      {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      <span>{copied ? 'Copied' : 'Copy'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-3">
-                <span className="w-6 h-6 rounded-lg bg-roblox-accent/20 text-roblox-accent font-bold flex items-center justify-center flex-shrink-0">
-                  3
-                </span>
-                <div>
-                  <p className="font-semibold text-white">Done!</p>
-                  <p className="text-slate-400 text-[11px] mt-0.5">
-                    Refresh this page and click <strong>"Auto-Connect Active Roblox Session"</strong>. It will immediately analyze your logged-in Roblox account in 1 click!
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 space-y-2">
-            <div className="flex items-center gap-2 font-bold text-white">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Extension Active & Connected!</span>
-            </div>
-            <p className="text-slate-300">
-              The Roblox Rewind extension bridge is active. Whenever you click Auto-Connect, it securely reads your active browser session from roblox.com and fetches all real transactions locally.
+        {/* 1-Click Download Extension Zip */}
+        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-blue-950/40 to-purple-950/30 border border-roblox-accent/30 flex items-center justify-between gap-3">
+          <div>
+            <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+              <Download className="w-4 h-4 text-roblox-accent" />
+              <span>{t.btnDownloadExtensionZip}</span>
+            </h4>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {lang === 'km' ? 'ទាញយកកញ្ចប់ Extension រួច Load ចូល Browser' : 'Download unpacked package and load into browser'}
             </p>
           </div>
-        )}
 
-        {/* Footer */}
+          <a
+            href="/roblox-pulse-extension.zip"
+            download="roblox-pulse-extension.zip"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-roblox-accent hover:bg-roblox-accentHover text-white font-extrabold text-xs shadow-lg shadow-blue-500/25 transition-all hover:scale-[1.02] flex-shrink-0"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{lang === 'km' ? 'ទាញយក ZIP' : 'Download'}</span>
+          </a>
+        </div>
+
+        {/* 3 Simple Steps Guide */}
+        <div className="mt-4 space-y-2.5 text-xs">
+          <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-lg bg-roblox-accent/20 text-roblox-accent font-bold flex items-center justify-center flex-shrink-0 text-xs">
+              1
+            </span>
+            <div>
+              <p className="font-semibold text-white">{t.extStep1}</p>
+              <p className="text-slate-400 text-[11px] mt-0.5">
+                {lang === 'km' ? 'ពន្លា file ZIP (Extract) ដែលបានទាញយកមកជា folder ធម្មតា។' : 'Extract the downloaded ZIP file into a folder on your computer or phone browser (Kiwi/Orion).'}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-lg bg-roblox-accent/20 text-roblox-accent font-bold flex items-center justify-center flex-shrink-0 text-xs">
+              2
+            </span>
+            <div>
+              <p className="font-semibold text-white">{t.extStep2}</p>
+              <p className="text-slate-400 text-[11px] mt-0.5">
+                {lang === 'km' ? 'បើកផ្ទាំងថ្មីចូលទៅ chrome://extensions រួចបើក Developer mode នៅជ្រុងខាងលើស្តាំ ហើយចុច "Load unpacked" ជ្រើសយក folder នោះ។' : 'Open a new tab at chrome://extensions, toggle Developer mode ON, and click "Load unpacked" to select the folder.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-start gap-3">
+            <span className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center flex-shrink-0 text-xs">
+              3
+            </span>
+            <div>
+              <p className="font-semibold text-white">{t.extStep3}</p>
+              <p className="text-slate-400 text-[11px] mt-0.5">
+                {lang === 'km' ? 'រួចរាល់ហើយ! ត្រឡប់មកកាន់ទំព័រនេះវិញ វានឹងស្គាល់ និងបង្ហាញទិន្នន័យដោយស្វ័យប្រវត្តិ។' : 'Done! Return to this page and it will automatically connect and load your stats.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
         <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between">
-          <span className="text-[11px] text-slate-400">
-            🔒 100% Client-Side • No credentials leave your machine
-          </span>
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>100% Client-Side Safe • Local Only</span>
+          </div>
+
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-colors"
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-colors"
           >
-            Close
+            {t.close}
           </button>
         </div>
 

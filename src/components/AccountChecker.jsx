@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   Search, UserCheck, Shield, ExternalLink, Calendar, Copy, Check, Sparkles, 
   Gem, Award, Users, RefreshCw, AlertCircle, Eye, UserPlus, QrCode, 
-  Gamepad2, Download, Send, Globe, Flame, Clock, HeartHandshake, ShieldCheck
+  Gamepad2, Download, Send, Globe, Flame, Clock, HeartHandshake, ShieldCheck,
+  Shirt, Star, ShoppingBag, Puzzle
 } from 'lucide-react';
 import AddFriendQrModal from './AddFriendQrModal';
+import ExtensionModal from './ExtensionModal';
 import { translations } from '../translations';
 
 export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
@@ -15,10 +17,11 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
   const [avatarView, setAvatarView] = useState('full'); // 'full' | 'bust' | 'headshot'
-  const [activeSubTab, setActiveSubTab] = useState('collectibles'); // 'collectibles' | 'games' | 'badges' | 'groups' | 'qr'
+  const [activeSubTab, setActiveSubTab] = useState('wearing'); // 'wearing' | 'favorites' | 'collectibles' | 'games' | 'badges' | 'groups' | 'qr'
   const [copiedId, setCopiedId] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
 
   // Quick Preset Accounts for 1-Tap Testing
   const quickPresets = [
@@ -59,14 +62,16 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
 
       setProfile(data.profile);
       // Auto-set default active subtab based on data available
-      if (data.profile.counts.collectibles > 0) {
+      if (data.profile.currentlyWearing && data.profile.currentlyWearing.length > 0) {
+        setActiveSubTab('wearing');
+      } else if (data.profile.favorites && data.profile.favorites.length > 0) {
+        setActiveSubTab('favorites');
+      } else if (data.profile.counts.collectibles > 0) {
         setActiveSubTab('collectibles');
       } else if (data.profile.counts.games > 0) {
         setActiveSubTab('games');
-      } else if (data.profile.counts.badges > 0) {
-        setActiveSubTab('badges');
       } else {
-        setActiveSubTab('qr');
+        setActiveSubTab('badges');
       }
     } catch (err) {
       setError(err.message);
@@ -103,7 +108,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
     <div className="space-y-6">
       
       {/* Hero Search Header Bar */}
-      <div className="glass-panel p-5 sm:p-6 rounded-2xl border border-white/10 bg-gradient-to-br from-[#121624] via-[#141828] to-[#0E1017] shadow-xl">
+      <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 bg-gradient-to-br from-[#121624] via-[#141828] to-[#0E1017] shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <span className="p-2.5 rounded-2xl bg-gradient-to-br from-roblox-accent to-purple-600 text-white shadow-lg shadow-blue-500/20">
@@ -123,6 +128,15 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
               </p>
             </div>
           </div>
+
+          {/* Direct Install Extension Button */}
+          <button
+            onClick={() => setIsExtensionModalOpen(true)}
+            className="self-start sm:self-auto flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold transition-all shadow-md hover:scale-[1.02]"
+          >
+            <Puzzle className="w-4 h-4 text-purple-400" />
+            <span>{t.btnInstallExtensionDirect}</span>
+          </button>
         </div>
 
         {/* Input Form */}
@@ -195,7 +209,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
       {profile && (
         <div className="space-y-6 animate-fadeIn">
           
-          {/* Main User Card (Super Detailed Hero) */}
+          {/* Main User Card (3D Avatar Interactive Studio) */}
           <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 bg-gradient-to-br from-[#121624] via-[#10131E] to-[#0A0B0E] shadow-2xl overflow-hidden relative">
             
             {/* Background Glow */}
@@ -203,9 +217,15 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
               
-              {/* Avatar Column with Render Switcher (4 cols) */}
-              <div className="lg:col-span-4 flex flex-col items-center p-4 rounded-2xl bg-black/40 border border-white/5 shadow-inner">
-                <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-white/5 to-black/70 border border-white/10 shadow-2xl">
+              {/* 3D Avatar Column (4 cols) */}
+              <div className="lg:col-span-4 flex flex-col items-center p-4 rounded-3xl bg-black/50 border border-white/10 shadow-2xl relative group">
+                
+                {/* 3D Render Canvas Box */}
+                <div className="relative w-52 h-52 sm:w-60 sm:h-60 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b from-blue-500/10 via-black/80 to-black/90 border border-white/10 shadow-inner">
+                  
+                  {/* Subtle 3D Grid Overlay */}
+                  <div className="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px] opacity-15 pointer-events-none" />
+
                   <img
                     src={
                       avatarView === 'full'
@@ -216,11 +236,16 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                     }
                     alt={profile.name}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)] transition-all duration-300"
+                    className="w-full h-full object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] transition-all duration-300 group-hover:scale-105"
                   />
 
+                  {/* 3D Badge Tag */}
+                  <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-[9px] font-mono text-cyan-300 font-bold">
+                    3D Render
+                  </div>
+
                   {/* Presence Badge on Avatar */}
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/80 backdrop-blur-md border border-white/15 text-[10px] font-bold shadow-lg">
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md border border-white/15 text-[10px] font-bold shadow-lg">
                     <span className={`w-2 h-2 rounded-full ${
                       profile.presence.type === 2 ? 'bg-emerald-400 animate-pulse' :
                       profile.presence.type === 1 ? 'bg-blue-400' :
@@ -234,19 +259,19 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                   </div>
                 </div>
 
-                {/* Avatar Perspective Switcher */}
-                <div className="mt-3 flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10">
+                {/* 3D Avatar Perspective Switcher */}
+                <div className="mt-3 flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10">
                   <button
                     onClick={() => setAvatarView('full')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                       avatarView === 'full' ? 'bg-roblox-accent text-white shadow-md' : 'text-slate-400 hover:text-white'
                     }`}
                   >
-                    Full Body
+                    Full 3D
                   </button>
                   <button
                     onClick={() => setAvatarView('bust')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                       avatarView === 'bust' ? 'bg-roblox-accent text-white shadow-md' : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -254,7 +279,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                   </button>
                   <button
                     onClick={() => setAvatarView('headshot')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                       avatarView === 'headshot' ? 'bg-roblox-accent text-white shadow-md' : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -262,12 +287,12 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                   </button>
                 </div>
 
-                {/* Download PFP Button */}
+                {/* Download Avatar Button */}
                 <button
                   onClick={() => downloadAvatar(profile.avatarUrl || profile.headshotUrl, profile.name)}
                   className="mt-2.5 flex items-center gap-1 text-[11px] text-slate-400 hover:text-white transition-colors"
                 >
-                  <Download className="w-3 h-3" />
+                  <Download className="w-3 h-3 text-roblox-accent" />
                   <span>{t.downloadPfp}</span>
                 </button>
               </div>
@@ -403,28 +428,50 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
             </div>
           </div>
 
-          {/* 4 Big Valuation & Economy Cards (2x2 on Mobile, 4 in row on PC) */}
+          {/* 4 Cards (Currently Wearing, Favorites, Rolimon's RAP, Badges) */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             
-            {/* Card 1: Estimated Account Worth */}
-            <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#1A1813] to-[#111116] shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="flex items-center justify-between text-xs text-amber-400 font-bold mb-1">
-                <span>{t.accountWorthLabel}</span>
-                <Sparkles className="w-4 h-4 text-amber-400" />
+            {/* Card 1: Currently Wearing */}
+            <div 
+              onClick={() => setActiveSubTab('wearing')}
+              className="cursor-pointer glass-panel p-4 sm:p-5 rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-[#101B24] to-[#0E1015] shadow-xl relative overflow-hidden transition-all hover:border-cyan-400"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center justify-between text-xs text-cyan-400 font-bold mb-1">
+                <span>{t.wearingCountLabel}</span>
+                <Shirt className="w-4 h-4 text-cyan-400" />
               </div>
-              <div className="text-lg sm:text-2xl font-black text-amber-300 font-mono tracking-tight mt-1">
-                {profile.valuation?.estimatedRobux?.toLocaleString()} R$
+              <div className="text-lg sm:text-2xl font-black text-cyan-300 font-mono tracking-tight mt-1">
+                {profile.currentlyWearing?.length || 0}
               </div>
               <div className="text-[11px] text-slate-400 mt-1 font-mono">
-                {currency === 'KHR' 
-                  ? `≈ ${(profile.valuation?.estimatedRobux * 0.0035 * 4100).toLocaleString()} KHR` 
-                  : `≈ $${profile.valuation?.estimatedUsdDevex} USD`}
+                {lang === 'km' ? 'សម្ភារៈកំពុងពាក់' : 'Active Avatar Items'}
               </div>
             </div>
 
-            {/* Card 2: Rolimons Total RAP */}
-            <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-purple-500/30 bg-gradient-to-br from-[#171322] to-[#111116] shadow-xl relative overflow-hidden">
+            {/* Card 2: Favorites */}
+            <div 
+              onClick={() => setActiveSubTab('favorites')}
+              className="cursor-pointer glass-panel p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-[#1C1811] to-[#0E1015] shadow-xl relative overflow-hidden transition-all hover:border-amber-400"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center justify-between text-xs text-amber-400 font-bold mb-1">
+                <span>{t.favoritesCountLabel}</span>
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              </div>
+              <div className="text-lg sm:text-2xl font-black text-amber-300 font-mono tracking-tight mt-1">
+                {profile.favorites?.length || 0}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1 font-mono">
+                {lang === 'km' ? 'ហ្គេមដែលពេញចិត្ត' : 'Favorite Games'}
+              </div>
+            </div>
+
+            {/* Card 3: Rolimons Total RAP */}
+            <div 
+              onClick={() => setActiveSubTab('collectibles')}
+              className="cursor-pointer glass-panel p-4 sm:p-5 rounded-2xl border border-purple-500/30 bg-gradient-to-br from-[#171322] to-[#0E1015] shadow-xl relative overflow-hidden transition-all hover:border-purple-400"
+            >
               <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
               <div className="flex items-center justify-between text-xs text-purple-400 font-bold mb-1">
                 <span>{t.rapLabel}</span>
@@ -440,26 +487,14 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
               </div>
             </div>
 
-            {/* Card 3: Total Game Visits */}
-            <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-[#111D17] to-[#111116] shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="flex items-center justify-between text-xs text-emerald-400 font-bold mb-1">
-                <span>{t.totalVisitsLabel}</span>
-                <Gamepad2 className="w-4 h-4 text-emerald-400" />
-              </div>
-              <div className="text-lg sm:text-2xl font-black text-emerald-300 font-mono tracking-tight mt-1">
-                {profile.counts.totalGameVisits?.toLocaleString() || '0'}
-              </div>
-              <div className="text-[11px] text-slate-400 mt-1 font-mono">
-                {profile.counts.games} {lang === 'km' ? 'ហ្គេមបានបង្កើត' : 'Created Places'}
-              </div>
-            </div>
-
             {/* Card 4: Badges & Achievements */}
-            <div className="glass-panel p-4 sm:p-5 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-[#121927] to-[#111116] shadow-xl relative overflow-hidden">
+            <div 
+              onClick={() => setActiveSubTab('badges')}
+              className="cursor-pointer glass-panel p-4 sm:p-5 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-[#121927] to-[#0E1015] shadow-xl relative overflow-hidden transition-all hover:border-blue-400"
+            >
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
               <div className="flex items-center justify-between text-xs text-blue-400 font-bold mb-1">
-                <span>{lang === 'km' ? 'មេដាយកិត្តិយស' : 'Badges Earned'}</span>
+                <span>{lang === 'km' ? 'មេដាយកិត្តិយស' : 'Badges'}</span>
                 <Award className="w-4 h-4 text-blue-400" />
               </div>
               <div className="text-lg sm:text-2xl font-black text-blue-300 font-mono tracking-tight mt-1">
@@ -505,12 +540,39 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
             </div>
           </div>
 
-          {/* 5 Rich Detail Showcase Tabs */}
+          {/* Rich Detail Showcase Tabs */}
           <div className="glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 bg-[#121520] shadow-xl">
             
             {/* Tab Buttons Navigation */}
             <div className="flex items-center gap-2 pb-4 border-b border-white/10 overflow-x-auto scrollbar-none">
               
+              {/* Tab: Currently Wearing */}
+              <button
+                onClick={() => setActiveSubTab('wearing')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  activeSubTab === 'wearing'
+                    ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Shirt className="w-3.5 h-3.5 text-cyan-300" />
+                <span>{t.tabWearing} ({profile.currentlyWearing?.length || 0})</span>
+              </button>
+
+              {/* Tab: Favorites */}
+              <button
+                onClick={() => setActiveSubTab('favorites')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  activeSubTab === 'favorites'
+                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+                <span>{t.tabFavorites} ({profile.favorites?.length || 0})</span>
+              </button>
+
+              {/* Tab: Collectibles */}
               <button
                 onClick={() => setActiveSubTab('collectibles')}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
@@ -523,18 +585,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                 <span>{t.tabCollectibles} ({profile.collectibles.length})</span>
               </button>
 
-              <button
-                onClick={() => setActiveSubTab('games')}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  activeSubTab === 'games'
-                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Gamepad2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{t.tabGames} ({profile.games?.length || 0})</span>
-              </button>
-
+              {/* Tab: Badges */}
               <button
                 onClick={() => setActiveSubTab('badges')}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
@@ -547,6 +598,20 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                 <span>{t.tabBadges} ({profile.badges.length})</span>
               </button>
 
+              {/* Tab: Created Games */}
+              <button
+                onClick={() => setActiveSubTab('games')}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  activeSubTab === 'games'
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Gamepad2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{t.tabGames} ({profile.games?.length || 0})</span>
+              </button>
+
+              {/* Tab: Groups */}
               <button
                 onClick={() => setActiveSubTab('groups')}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
@@ -559,6 +624,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
                 <span>{t.tabGroups} ({profile.groups.length})</span>
               </button>
 
+              {/* Tab: QR Add Friend */}
               <button
                 onClick={() => setActiveSubTab('qr')}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
@@ -573,7 +639,124 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
 
             </div>
 
-            {/* Tab 1 Content: Collectibles & Limiteds */}
+            {/* TAB 1: CURRENTLY WEARING (PRODUCT, IMAGE, PRICE, FIND BUTTON) */}
+            {activeSubTab === 'wearing' && (
+              <div className="pt-4">
+                {!profile.currentlyWearing || profile.currentlyWearing.length === 0 ? (
+                  <div className="text-center py-10 text-slate-400 text-xs">
+                    <Shirt className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                    <span>{lang === 'km' ? 'មិនមានទិន្នន័យសម្ភារៈកំពុងពាក់ជាសាធារណៈឡើយ' : 'No currently wearing items detected'}</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    {profile.currentlyWearing.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-2xl bg-black/40 border border-white/5 hover:border-cyan-500/40 transition-all flex flex-col justify-between gap-3 shadow-inner"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 p-1">
+                            {item.thumbnail ? (
+                              <img src={item.thumbnail} alt={item.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <Shirt className="w-8 h-8 text-cyan-400" />
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-xs font-extrabold text-white truncate" title={item.name}>
+                              {item.name}
+                            </h5>
+                            
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`text-xs font-black font-mono ${item.price > 0 ? 'text-amber-400' : 'text-slate-300'}`}>
+                                {item.priceText}
+                              </span>
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/10 text-slate-300 font-semibold">
+                                {item.productType}
+                              </span>
+                            </div>
+
+                            <span className="text-[10px] text-slate-500 font-mono block mt-1">
+                              Asset ID: {item.id}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Button Find That Product / Buy on Roblox */}
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-600/30 to-blue-600/30 hover:from-cyan-600/50 hover:to-blue-600/50 text-cyan-300 hover:text-white text-xs font-bold border border-cyan-500/30 transition-all hover:scale-[1.01]"
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5" />
+                          <span>{t.btnFindProduct}</span>
+                          <ExternalLink className="w-3 h-3 text-cyan-400" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: FAVORITES (GAMES, IMAGE, CREATOR, PLAY BUTTON) */}
+            {activeSubTab === 'favorites' && (
+              <div className="pt-4">
+                {!profile.favorites || profile.favorites.length === 0 ? (
+                  <div className="text-center py-10 text-slate-400 text-xs">
+                    <Star className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                    <span>{lang === 'km' ? 'មិនមានហ្គេមដែលពេញចិត្តជាសាធារណៈឡើយ' : 'No public favorite experiences found'}</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                    {profile.favorites.map((game, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-2xl bg-black/40 border border-white/5 hover:border-amber-500/40 transition-all flex flex-col justify-between gap-3 shadow-inner"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {game.thumbnail ? (
+                              <img src={game.thumbnail} alt={game.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Star className="w-8 h-8 text-amber-400 fill-amber-400" />
+                            )}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-xs font-extrabold text-white truncate" title={game.name}>
+                              {game.name}
+                            </h5>
+                            <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                              by <strong className="text-slate-200">{game.creator}</strong>
+                            </p>
+                            <span className="text-[10px] text-amber-400 font-mono font-bold block mt-1">
+                              ⭐ {game.visits?.toLocaleString() || 0} visits
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Button Play Game */}
+                        <a
+                          href={game.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-600/30 to-orange-600/30 hover:from-amber-600/50 hover:to-orange-600/50 text-amber-300 hover:text-white text-xs font-bold border border-amber-500/30 transition-all hover:scale-[1.01]"
+                        >
+                          <Gamepad2 className="w-3.5 h-3.5" />
+                          <span>{t.playOnRoblox}</span>
+                          <ExternalLink className="w-3 h-3 text-amber-400" />
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: COLLECTIBLES & LIMITEDS */}
             {activeSubTab === 'collectibles' && (
               <div className="pt-4">
                 {profile.collectibles.length === 0 ? (
@@ -622,7 +805,56 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
               </div>
             )}
 
-            {/* Tab 2 Content: Created Games */}
+            {/* TAB 4: BADGES SHOWCASE (GUARANTEED IMAGES) */}
+            {activeSubTab === 'badges' && (
+              <div className="pt-4">
+                {profile.badges.length === 0 ? (
+                  <div className="text-center py-10 text-slate-400 text-xs">
+                    <Award className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                    <span>{lang === 'km' ? 'គណនីនេះមិនទាន់មាន Badge បង្ហាញនៅឡើយទេ' : 'No badges found for this user'}</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {profile.badges.map((badge, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-2xl bg-black/40 border border-white/5 hover:border-blue-500/30 transition-all flex items-center gap-3 shadow-inner"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0 p-1">
+                          {badge.iconUrl ? (
+                            <img src={badge.iconUrl} alt={badge.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <Award className="w-6 h-6 text-blue-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <h5 className="text-xs font-bold text-white truncate" title={badge.name}>
+                              {badge.name}
+                            </h5>
+                            {badge.isOfficial && (
+                              <span className="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 text-[9px] font-bold">
+                                Official
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 line-clamp-2 mt-0.5">
+                            {badge.description}
+                          </p>
+                          {badge.awardedDate && (
+                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
+                              {new Date(badge.awardedDate).toLocaleDateString(lang === 'km' ? 'km-KH' : 'en-US')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 5: CREATED EXPERIENCES */}
             {activeSubTab === 'games' && (
               <div className="pt-4">
                 {!profile.games || profile.games.length === 0 ? (
@@ -674,49 +906,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
               </div>
             )}
 
-            {/* Tab 3 Content: Badges Showcase */}
-            {activeSubTab === 'badges' && (
-              <div className="pt-4">
-                {profile.badges.length === 0 ? (
-                  <div className="text-center py-10 text-slate-400 text-xs">
-                    <Award className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <span>{lang === 'km' ? 'គណនីនេះមិនទាន់មាន Badge បង្ហាញនៅឡើយទេ' : 'No badges found for this user'}</span>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {profile.badges.map((badge, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3.5 rounded-2xl bg-black/40 border border-white/5 hover:border-blue-500/30 transition-all flex items-center gap-3"
-                      >
-                        <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {badge.iconUrl ? (
-                            <img src={badge.iconUrl} alt={badge.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <Award className="w-6 h-6 text-blue-400" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h5 className="text-xs font-bold text-white truncate" title={badge.name}>
-                            {badge.name}
-                          </h5>
-                          <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                            {badge.description}
-                          </p>
-                          {badge.awardedDate && (
-                            <span className="text-[10px] text-slate-500 font-mono block mt-0.5">
-                              {new Date(badge.awardedDate).toLocaleDateString(lang === 'km' ? 'km-KH' : 'en-US')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Tab 4 Content: Joined Groups */}
+            {/* TAB 6: JOINED GROUPS */}
             {activeSubTab === 'groups' && (
               <div className="pt-4">
                 {profile.groups.length === 0 ? (
@@ -763,7 +953,7 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
               </div>
             )}
 
-            {/* Tab 5 Content: Add Friend & QR Code Studio */}
+            {/* TAB 7: ADD FRIEND & QR CODE STUDIO */}
             {activeSubTab === 'qr' && (
               <div className="pt-4 flex flex-col items-center">
                 <div className="max-w-md w-full p-6 rounded-3xl bg-black/50 border border-white/10 flex flex-col items-center text-center">
@@ -806,6 +996,15 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
             isOpen={isQrModalOpen}
             onClose={() => setIsQrModalOpen(false)}
             profile={profile}
+            lang={lang}
+          />
+
+          {/* Direct Extension Install Modal */}
+          <ExtensionModal
+            isOpen={isExtensionModalOpen}
+            onClose={() => setIsExtensionModalOpen(false)}
+            isExtensionInstalled={false}
+            onAutoConnect={() => {}}
             lang={lang}
           />
 

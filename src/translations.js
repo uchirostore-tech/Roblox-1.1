@@ -91,10 +91,12 @@ export const translations = {
 
     // Public Profile Checker & Intelligence
     searchTitle: 'ប្រព័ន្ធពិនិត្យគណនី Roblox កម្រិតខ្ពស់ (Super Detail)',
-    searchSubtitle: 'គ្រាន់តែវាយឈ្មោះ Username ឬ ID ដើម្បីដឹងតម្លៃគណនី, រូប 3D, RAP Limiteds, ហ្គេមដែលបានបង្កើត និង Scan QR Add Friend ភ្លាមៗ!',
+    searchSubtitle: 'គ្រាន់តែវាយឈ្មោះ Username ឬ ID ដើម្បីដឹងទំនិញកំពុងពាក់, ហ្គេមពេញចិត្ត, រូប 3D, RAP Limiteds, និង Scan QR Add Friend ភ្លាមៗ!',
     searchPlaceholder: 'បញ្ចូលឈ្មោះ Roblox Username ឬ User ID (ឧ. Builderman, eli_uth, Roblox)...',
     btnInspect: 'ពិនិត្យគណនីឥឡូវនេះ',
     quickTryLabel: 'ចុចសាកល្បងគណនីល្បីៗ:',
+    tabWearing: 'សម្ភារៈកំពុងពាក់ (Wearing)',
+    tabFavorites: 'ហ្គេមដែលពេញចិត្ត (Favorites)',
     tabCollectibles: 'ទ្រព្យសម្បត្តិមានតម្លៃ & Limiteds (RAP)',
     tabGames: 'ហ្គេមដែលបានបង្កើត (Experiences)',
     tabBadges: 'មេដាយកិត្តិយស (Badges)',
@@ -106,11 +108,22 @@ export const translations = {
     followingLabel: 'កំពុងតាមដាន',
     gamesCountLabel: 'ហ្គេមបង្កើត',
     totalVisitsLabel: 'ការចូលលេងសរុប',
-    accountWorthLabel: 'តម្លៃប៉ាន់ស្មានគណនី',
+    wearingCountLabel: 'ទំនិញកំពុងពាក់',
+    favoritesCountLabel: 'ហ្គេមពេញចិត្ត',
+    btnFindProduct: 'ស្វែងរក / ទិញលើ Roblox',
     statusOnline: 'កំពុង Online លើវិបសាយ',
     statusInGame: 'កំពុងលេងហ្គេម',
     statusStudio: 'កំពុងនៅក្នុង Roblox Studio',
     statusOffline: 'មិនបាន Online',
+
+    // Extension Direct Add
+    btnInstallExtensionDirect: '🔌 ដំឡើង Extension លើ Browser ផ្ទាល់',
+    extensionInstallTitle: 'ដំឡើង Roblox Pulse Extension លើ Browser',
+    extensionInstallSubtitle: 'បន្ថែម Extension ទៅកាន់ Chrome, Edge, Brave, Kiwi, ឬ Orion Browser របស់អ្នកដោយផ្ទាល់ រួចត្រឡប់មកកាន់ទំព័រនេះវិញដើម្បី Scan ស្វ័យប្រវត្តិ!',
+    btnDownloadExtensionZip: 'ទាញយក Extension Folder (ZIP)',
+    extStep1: '១. ចុចទាញយក Extension Folder ឬ Load Unpacked ក្នុង Browser',
+    extStep2: '២. បើក chrome://extensions រួចបើក Developer Mode ហើយចុច "Load unpacked"',
+    extStep3: '៣. ត្រឡប់មកកាន់ទំព័រនេះវិញ នោះប្រព័ន្ធនឹង Auto-Scan គណនីរបស់អ្នកភ្លាមៗ!',
 
     // Add Friend & QR Code
     btnAddFriend: 'Add Friend ក្នុង Roblox App',
@@ -233,10 +246,12 @@ export const translations = {
 
     // Public Profile Checker & Intelligence
     searchTitle: 'Roblox Account Intelligence & Stats Explorer',
-    searchSubtitle: 'Type any Username or User ID to inspect account valuation, 3D avatar, RAP, created games, and generate Add Friend QR codes!',
+    searchSubtitle: 'Type any Username or User ID to inspect currently wearing items, favorite games, 3D avatar, RAP, and generate Add Friend QR codes!',
     searchPlaceholder: 'Enter Roblox Username or numeric User ID (e.g. Builderman, eli_uth, Roblox)...',
     btnInspect: 'Inspect Profile',
     quickTryLabel: 'Quick test popular accounts:',
+    tabWearing: 'Currently Wearing',
+    tabFavorites: 'Favorite Games',
     tabCollectibles: 'Collectibles & Limiteds (RAP)',
     tabGames: 'Created Experiences',
     tabBadges: 'Badges Showcase',
@@ -248,11 +263,22 @@ export const translations = {
     followingLabel: 'Following',
     gamesCountLabel: 'Created Games',
     totalVisitsLabel: 'Total Visits',
-    accountWorthLabel: 'Estimated Account Worth',
+    wearingCountLabel: 'Currently Wearing',
+    favoritesCountLabel: 'Favorites',
+    btnFindProduct: 'Find / Buy on Roblox',
     statusOnline: 'Online (Website)',
     statusInGame: 'In Game',
     statusStudio: 'In Roblox Studio',
     statusOffline: 'Offline',
+
+    // Extension Direct Add
+    btnInstallExtensionDirect: '🔌 Install Extension Directly',
+    extensionInstallTitle: 'Add Roblox Pulse Extension to Browser',
+    extensionInstallSubtitle: 'Add the extension directly to your Chrome, Edge, Brave, Kiwi, or Orion browser, then return to this page to scan automatically!',
+    btnDownloadExtensionZip: 'Download Extension Package (ZIP)',
+    extStep1: '1. Download extension files or enable Developer Mode in your browser',
+    extStep2: '2. Open chrome://extensions, enable "Developer Mode" and click "Load unpacked"',
+    extStep3: '3. Return to this page — your account will be auto-detected instantly!',
 
     // Add Friend & QR Code
     btnAddFriend: 'Add Friend in Roblox App',
