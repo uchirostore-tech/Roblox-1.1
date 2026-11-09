@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Roblox Pulse V1.1 - Auto Session Connector",
+  "version": "1.1.0",
+  "author": "@noreakyout (https://t.me/uchirostore)",
+  "description": "Auto-detects active Roblox browser session for Roblox Pulse V1.1 with deep historical Premium & Builders Club stipend detection. Make by @noreakyout (https://t.me/uchirostore).",
+  "permissions": [
+    "cookies",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.roblox.com/*",
+    "http://localhost:*/*",
+    "http://127.0.0.1:*/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open Roblox Pulse V1.1",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:*/*",
+        "http://127.0.0.1:*/*",
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B101D"/>
+      <stop offset="50%" stop-color="#070A12"/>
+      <stop offset="100%" stop-color="#030509"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C0FF"/>
+      <stop offset="50%" stop-color="#0072FF"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
+    </linearGradient>
+    <linearGradient id="pulseGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="50%" stop-color="#00FFA3"/>
+      <stop offset="100%" stop-color="#00E5FF"/>
+    </linearGradient>
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="24" result="blur2"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Glow Behind -->
+  <rect x="110" y="110" width="292" height="292" rx="64" transform="rotate(45 256 256)" fill="#00A2FF" opacity="0.25" filter="url(#outerGlow)"/>
+
+  <!-- Tilted Roblox-style Outer Diamond/Cube -->
+  <rect x="100" y="100" width="312" height="312" rx="56" transform="rotate(45 256 256)" fill="url(#bgGrad)" stroke="url(#shieldGrad)" stroke-width="12"/>
+
+  <!-- Inner Concentric Frame -->
+  <rect x="136" y="136" width="240" height="240" rx="42" transform="rotate(45 256 256)" fill="#080C16" stroke="#00A2FF" stroke-width="3" stroke-dasharray="16 10" opacity="0.6"/>
+
+  <!-- Roblox Inner Square Core Hole -->
+  <rect x="220" y="220" width="72" height="72" rx="16" transform="rotate(45 256 256)" fill="#000000" stroke="url(#pulseGrad)" stroke-width="6"/>
+
+  <!-- Electric Pulse Heartbeat ECG Wave Line (Roblox Pulse) -->
+  <path d="M 80 256 L 160 256 L 195 210 L 225 315 L 260 160 L 295 330 L 325 235 L 355 270 L 380 256 L 432 256"
+        stroke="url(#pulseGrad)"
+        stroke-width="14"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#neonGlow)"/>
+
+  <!-- Pulse Center Power Dot -->
+  <circle cx="256" cy="256" r="14" fill="#00FFA3" filter="url(#neonGlow)"/>
+  <circle cx="256" cy="256" r="6" fill="#FFFFFF"/>
+</svg>
