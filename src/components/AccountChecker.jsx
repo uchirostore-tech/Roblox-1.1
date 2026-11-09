@@ -6,7 +6,6 @@ import {
   Shirt, Star, ShoppingBag, Puzzle
 } from 'lucide-react';
 import AddFriendQrModal from './AddFriendQrModal';
-import ExtensionModal from './ExtensionModal';
 import { translations } from '../translations';
 
 export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
@@ -21,7 +20,6 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
   const [copiedId, setCopiedId] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
 
   // Quick Preset Accounts for 1-Tap Testing
   const quickPresets = [
@@ -128,15 +126,6 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
               </p>
             </div>
           </div>
-
-          {/* Direct Install Extension Button */}
-          <button
-            onClick={() => setIsExtensionModalOpen(true)}
-            className="self-start sm:self-auto flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold transition-all shadow-md hover:scale-[1.02]"
-          >
-            <Puzzle className="w-4 h-4 text-purple-400" />
-            <span>{t.btnInstallExtensionDirect}</span>
-          </button>
         </div>
 
         {/* Input Form */}
@@ -996,15 +985,6 @@ export default function AccountChecker({ lang = 'km', currency = 'USD' }) {
             isOpen={isQrModalOpen}
             onClose={() => setIsQrModalOpen(false)}
             profile={profile}
-            lang={lang}
-          />
-
-          {/* Direct Extension Install Modal */}
-          <ExtensionModal
-            isOpen={isExtensionModalOpen}
-            onClose={() => setIsExtensionModalOpen(false)}
-            isExtensionInstalled={false}
-            onAutoConnect={() => {}}
             lang={lang}
           />
 

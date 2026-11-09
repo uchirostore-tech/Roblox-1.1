@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Trash2, Globe, Clock, ShieldCheck, Flame, UserCheck, HelpCircle, Camera, ChevronDown, Calculator, Zap, Heart, Send } from 'lucide-react';
+import { Sparkles, Trash2, Globe, Clock, ShieldCheck, Flame, UserCheck, HelpCircle, Camera, ChevronDown, Calculator, Zap, Heart, Send, KeyRound } from 'lucide-react';
 import { translations } from '../translations';
 
 export default function Header({ 
@@ -129,8 +129,8 @@ export default function Header({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
-            <span>{lang === 'km' ? '⚡ Rewind ចំណាយ' : '⚡ Spending Rewind'}</span>
+            <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+            <span>{lang === 'km' ? '🔑 វិភាគចំណាយ (Cookie)' : '🔑 Spending (Cookie)'}</span>
           </button>
         </div>
 
